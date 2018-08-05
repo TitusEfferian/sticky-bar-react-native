@@ -7,80 +7,67 @@
  */
 
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, Animated, Image, Easing,TouchableHighlight } from 'react-native';
+import { Platform, StyleSheet,TouchableOpacity, Text, View, Animated, Image, Easing, TouchableHighlight } from 'react-native';
 
 export default class App extends Component {
 
   constructor() {
     super()
-    this.animatedValue1 = new Animated.Value(0)
-    this.animatedValue2 = new Animated.Value(0)
-    this.animatedValue3 = new Animated.Value(0)
+    this.state = {
+      animationValue: 0,
+      animationFinishValue: 1,
+      marginMovingStart: 0,
+      marginMovingEnd: 128,
+      colorStart:'green',
+      colorEnd:'yellow'
+    }
+    this.animatedValue = new Animated.Value(this.state.animationValue)
   }
 
-  componentDidMount() {
-    this.animate()
+  viewAnimated() {
+    this.animatedValue.setValue(0)
+    Animated.timing(
+      this.animatedValue,
+      {
+        toValue: 1,
+        duration: 500,
+        easing: Easing.linear
+      }
+    ).start()
   }
-  animate() {
-    this.animatedValue1.setValue(0)
-    this.animatedValue2.setValue(0)
-    this.animatedValue3.setValue(0)
-    const createAnimation = function (value, duration, easing, delay = 0) {
-      return Animated.timing(
-        value,
-        {
-          toValue: 1,
-          duration,
-          easing,
-          delay
-        }
-      )
+
+  stateChecker() {
+    if (this.state.animationValue == 0) {
+      this.setState({ animationValue: 1, marginMovingStart: 128, marginMovingEnd: 0,colorStart:'yellow' })
     }
-    Animated.parallel([
-      createAnimation(this.animatedValue1, 2000, Easing.ease),
-      createAnimation(this.animatedValue2, 1000, Easing.ease, 1000),
-      createAnimation(this.animatedValue3, 1000, Easing.ease, 2000)
-    ]).start()
+    else if (this.state.animationValue == 1) {
+      this.setState({ animationValue: 0, marginMovingStart: 0, marginMovingEnd: 128,colorEnd:'green' })
+
+    }
+
   }
 
   render() {
-    const scaleText = this.animatedValue1.interpolate({
-      inputRange: [0, 0.5,1],
-      outputRange: [0.5, 2,0.5]
-    })
-    const spinText = this.animatedValue2.interpolate({
+
+    const movingBox = this.animatedValue.interpolate({
       inputRange: [0, 1],
-      outputRange: ['0deg', '720deg']
+      outputRange: [this.state.marginMovingStart, this.state.marginMovingEnd]
     })
-    const introButton = this.animatedValue3.interpolate({
-      inputRange: [0, 1],
-      outputRange: [-100, 400]
+
+    const changingColor = this.animatedValue.interpolate({
+      inputRange:[0,1],
+      outputRange:[this.state.colorStart,this.state.colorEnd]
     })
+
     return (
       <View style={styles.container}>
-        <Animated.View
-          style={{ transform: [{ scale: scaleText }] }}>
-          <Text>Welcome</Text>
-        </Animated.View>
-        <Animated.View
-          style={{ marginTop: 20, transform: [{ rotate: spinText }] }}>
-          <Text
-            style={{ fontSize: 20 }}>
-            to the App!
-          </Text>
-        </Animated.View>
-        <Animated.View
-          style={{ top: introButton, position: 'absolute' }}>
-          <TouchableHighlight
-            onPress={this.animate.bind(this)}
-            style={styles.button}>
-            <Text
-              style={{ color: 'black', fontSize: 20 }}>
-              Click Here To Start
-            </Text>
-          </TouchableHighlight>
-        </Animated.View>
-
+        <TouchableOpacity onPress={() => { this.viewAnimated(), this.stateChecker() }}>
+          <View style={{ paddingVertical: 8, paddingHorizontal: 16, borderRadius: 60, borderColor: 'black', borderWidth: 1 }}>
+            <Text>press</Text>
+          </View>
+        </TouchableOpacity>
+        <Animated.View style={{ width: 50, height: 50, backgroundColor: changingColor, marginTop: 16, marginLeft: movingBox }}></Animated.View>
+        <Text>{this.state.animationValue}</Text>
       </View>
     );
   }
